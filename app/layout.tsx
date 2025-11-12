@@ -3,6 +3,7 @@ import { Exo_2, Orbitron } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { SiteHeader } from 'components/layout/SiteHeader'
+import { DevBanner } from 'components/layout/DevBanner'
 
 const exo2 = Exo_2({ 
   subsets: ['latin'],
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className="font-sans min-h-screen bg-jf-surface text-white">
         <Providers>
           <div className="sticky top-0 z-50">
+            <DevBanner />
             <SiteHeader />
           </div>
           <main>{children}</main>
