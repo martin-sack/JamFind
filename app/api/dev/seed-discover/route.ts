@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "lib/db";
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
+  try {
   // If you already have tracks, skip; else create two demo tracks wired to your stream pipeline.
   const existing = await prisma.track.findMany({ take: 1 });
   if (!existing.length) {
@@ -54,5 +56,9 @@ export async function GET() {
     });
   }
   
-  return NextResponse.json({ ok: true, message: "Discover data seeded successfully" });
+    return NextResponse.json({ ok: true, message: "Discover data seeded successfully" });
+  } catch (error) {
+    console.error('Seed discover error:', error);
+    return NextResponse.json({ ok: false, message: "Database unavailable" }, { status: 200 });
+  }
 }
