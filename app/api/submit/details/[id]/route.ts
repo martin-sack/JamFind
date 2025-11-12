@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "lib/db";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const s = await prisma.weeklySubmission.findUnique({
     where: { id: params.id },

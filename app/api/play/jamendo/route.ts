@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 const BASE = "https://api.jamendo.com/v3.0/tracks";
 
 export async function GET(req: Request) {

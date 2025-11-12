@@ -5,6 +5,8 @@ import { prisma } from '@/lib/db';
 import { isWithinCurrentWeek } from '@/lib/weeks';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const addItemSchema = z.object({
   trackId: z.string().min(1),
   position: z.number().min(1).max(10),

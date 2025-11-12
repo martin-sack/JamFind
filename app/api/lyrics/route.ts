@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 async function fromGenius(q: string) {
   const token = process.env.GENIUS_ACCESS_TOKEN;
   if (!token) return null;

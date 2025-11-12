@@ -3,6 +3,8 @@ import { getRecommendations } from "lib/recommend";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {

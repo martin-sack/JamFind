@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { applyWeeklyRewards, getDefaultRewardsWeek, canRunRewardsForWeek } from '@/lib/rewards';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const runRewardsSchema = z.object({
   weekStart: z.string().optional(), // ISO string
 });

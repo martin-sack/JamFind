@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { fetchPlaylistReal } from "lib/importers";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   const { url } = await req.json();
   if (!url) return NextResponse.json({ error: "No URL" }, { status: 400 });

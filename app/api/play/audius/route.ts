@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 async function resolveHost() {
   try {
     const r = await fetch("https://api.audius.co", { cache: "no-store" });

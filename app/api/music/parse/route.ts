@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseMusicLink, fetchMusicPlaylist, fetchMusicTrack, musicTrackToInternal } from '@/lib/musicapi';
 
+export const dynamic = 'force-dynamic';
+
 // Enhanced error messages per platform
 const PLATFORM_ERROR_MESSAGES = {
   spotify: {

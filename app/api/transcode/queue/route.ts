@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { transcodeQueue } from "../../../../lib/queue";
 
+export const dynamic = 'force-dynamic';
+
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const quickCreateSchema = z.object({
   title: z.string().min(1).max(255),
   artistName: z.string().min(1).max(255),

@@ -5,6 +5,8 @@ import { prisma } from "lib/db";
 import { publish } from "lib/live";
 import { rl } from "lib/ratelimit";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "lib/db";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   const { submissionId, items } = await req.json(); // items: array of {title, artist, artworkUrl?, trackId?, source?, sourceId?}
   if (!submissionId || !Array.isArray(items)) return NextResponse.json({ error: "Bad payload" }, { status: 400 });

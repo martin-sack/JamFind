@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   const u = new URL(req.url);
   const artist = u.searchParams.get("artist") || "";

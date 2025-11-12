@@ -4,6 +4,8 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { rl } from "../../../../lib/ratelimit";
 
+export const dynamic = 'force-dynamic';
+
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {

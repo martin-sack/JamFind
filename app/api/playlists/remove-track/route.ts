@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "lib/db";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   const { playlistTrackId } = await req.json();
   if (!playlistTrackId) return NextResponse.json({ error: "Missing id" }, { status: 400 });

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parsePlaylistLink, fetchSpotifyPlaylist, fetchSpotifyTrack, spotifyTrackToInternal } from '@/lib/spotify';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const { url } = await request.json();
