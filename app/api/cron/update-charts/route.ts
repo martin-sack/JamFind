@@ -3,6 +3,7 @@ import { prisma } from "lib/db";
 import dayjs from "dayjs";
 
 export const runtime = "nodejs";
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const weekStart = dayjs().startOf("week").toDate();

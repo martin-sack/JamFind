@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getWeeklyTop } from "lib/charts";
 
 export const runtime = "nodejs";
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const data = await getWeeklyTop(100);

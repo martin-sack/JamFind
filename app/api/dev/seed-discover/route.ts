@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "lib/db";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   // If you already have tracks, skip; else create two demo tracks wired to your stream pipeline.
   const existing = await prisma.track.findMany({ take: 1 });
