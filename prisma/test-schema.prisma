@@ -1,0 +1,291 @@
+// Test schema
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  name              String?
+  email             String    @unique
+  passwordHash      String?
+  handle            String?   @unique
+  country           String?
+  role              String    @default("USER") // Store as string for SQLite
+  points            Int       @default(0)
+  bio               String?
+  profileImage      String?
+  coverImage        String?
+  socialLinks       String? // Store as JSON string for SQLite
+  isVerified        Boolean   @default(false)
+  totalTipsReceived Int       @default(0)
+  totalTipsGiven    Int       @default(0)
+  streakCount       Int       @default(0)
+  lastSubmissionAt  DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  playlists               Playlist[]
+  uploadedTracks          Track[]                @relation("UploadedTracks")
+  auditLogs               AuditLog[]
+  fraudSignals            FraudSignal[]
+  rewards                 Reward[]
+  creatorBadges           CreatorBadge[]
+  challengeParticipations ChallengeParticipant[]
+  tipsReceived            TippingTransaction[]   @relation("TipsReceived")
+  tipsGiven               TippingTransaction[]   @relation("TipsGiven")
+
+  @@map("users")
+}
+
+model Artist {
+  id           String   @id @default(cuid())
+  name         String
+  aka          String // Store as comma-separated string for SQLite
+  country      String?
+  socials      String? // Store as JSON string for SQLite
+  verified     Boolean  @default(false)
+  chartedWeeks String // Store as comma-separated ISO dates for SQLite
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  tracks Track[]
+
+  @@map("artists")
+}
+
+model Track {
+  id               String   @id @default(cuid())
+  title            String
+  artistId         String
+  album            String?
+  durationSec      Int?
+  isrc             String?  @unique
+  audioUrl         String?
+  previewUrl       String?
+  artworkUrl       String?
+  genres           String // Store as comma-separated string for SQLite
+  moods            String // Store as comma-separated string for SQLite
+  language         String?
+  country          String?
+  visibility       String   @default("PUBLIC") // Store as string for SQLite
+  uploadedByUserId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  artist                  Artist                 @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  uploadedBy              User?                  @relation("UploadedTracks", fields: [uploadedByUserId], references: [id])
+  playlistItems           PlaylistItem[]
+  submissionStats         SubmissionStat[]
+  fraudSignals            FraudSignal[]
+  challengeParticipations ChallengeParticipant[]
+
+  @@index([title, artistId])
+  @@index([title])
+  @@map("tracks")
+}
+
+model PlaylistItem {
+  id         String   @id @default(cuid())
+  playlistId String
+  trackId    String
+  position   Int // 1-10
+  addedAt    DateTime @default(now())
+
+  // Relations
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  track    Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, trackId])
+  @@map("playlist_items")
+}
+
+model SubmissionStat {
+  id                 String   @id @default(cuid())
+  trackId            String
+  weekStartDate      DateTime
+  submitterCount     Int      @default(0)
+  uniqueCountries    Int      @default(0)
+  recencyWeight      Float    @default(1.0)
+  diversityWeight    Float    @default(1.0)
+  totalWeightedScore Float    @default(0.0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([trackId, weekStartDate])
+  @@map("submission_stats")
+}
+
+model RankingSnapshot {
+  id            String   @id @default(cuid())
+  weekStartDate DateTime
+  listType      String // Store as string for SQLite
+  payloadJSON   String // Store as JSON string for SQLite
+  createdAt     DateTime @default(now())
+
+  @@map("ranking_snapshots")
+}
+
+model FraudSignal {
+  id            String    @id @default(cuid())
+  userId        String?
+  trackId       String?
+  weekStartDate DateTime?
+  reason        String
+  score         Float     @default(0.0)
+  metadataJSON  String // Store as JSON string for SQLite
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  user  User?  @relation(fields: [userId], references: [id])
+  track Track? @relation(fields: [trackId], references: [id])
+
+  @@map("fraud_signals")
+}
+
+model Reward {
+  id        String   @id @default(cuid())
+  userId    String
+  weekStart DateTime
+  points    Int
+  reason    String // e.g., "Had #1 Track: {trackTitle}"
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, weekStart])
+  @@map("rewards")
+}
+
+model RewardsPayout {
+  id        String   @id @default(cuid())
+  weekStart DateTime @unique
+  createdAt DateTime @default(now())
+  notes     String?
+
+  @@map("rewards_payouts")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String
+  action       String
+  entity       String
+  entityId     String?
+  metadataJSON String // Store as JSON string for SQLite
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+// Enums are not supported in SQLite, using strings instead
+
+// P2 Creator Features
+model CreatorBadge {
+  id           String   @id @default(cuid())
+  userId       String
+  badgeType    String
+  awardedAt    DateTime @default(now())
+  metadataJSON String? // Store as JSON string for SQLite
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("creator_badges")
+}
+
+model WeeklyChallenge {
+  id          String   @id @default(cuid())
+  weekStart   DateTime @unique
+  theme       String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  participants ChallengeParticipant[]
+
+  @@map("weekly_challenges")
+}
+
+model ChallengeParticipant {
+  id            String   @id @default(cuid())
+  challengeId   String
+  userId        String
+  trackId       String
+  submittedAt   DateTime @default(now())
+  rank          Int?
+  pointsAwarded Int      @default(0)
+
+  // Relations
+  challenge WeeklyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track     Track           @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId, trackId])
+  @@map("challenge_participants")
+}
+
+model TippingTransaction {
+  id               String   @id @default(cuid())
+  fromUserId       String
+  toUserId         String
+  amountCents      Int
+  currency         String   @default("GHS")
+  platformFeeCents Int
+  platform         String
+  status           String   @default("pending")
+  transactionId    String?
+  metadataJSON     String? // Store as JSON string for SQLite
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  fromUser User @relation("TipsGiven", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("TipsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@map("tipping_transactions")
+}
+
+// Add featured placement tracking to Playlist
+model Playlist {
+  id                 String    @id @default(cuid())
+  userId             String
+  weekStartDate      DateTime
+  weekEndDate        DateTime
+  title              String?
+  moodTags           String // Store as comma-separated string for SQLite
+  isFeatured         Boolean   @default(false)
+  featuredUntil      DateTime?
+  featuredPriceCents Int?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playlistItems PlaylistItem[]
+
+  @@unique([userId, weekStartDate])
+  @@map("playlists")
+}
