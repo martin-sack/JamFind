@@ -1,183 +1,215 @@
-# JamFind Africa
+# 🎵 JamFind — Play the Music Game
 
-A streaming platform that promotes African music and elevates under-recognized artists via community-submitted weekly playlists.
+> A weekly music discovery competition platform where users submit their top 10 tracks, earn XP, climb leaderboards, and compete for recognition.
+
+---
+
+## What Is JamFind?
+
+JamFind is a gamified music platform built around a simple idea: **every week, submit your 10 best tracks and compete**. Users earn XP, build playlists, follow friends, and see their picks climb the charts. It's part music game, part social network, part discovery engine.
+
+---
 
 ## Features
 
-- **Weekly Playlists**: Users submit exactly 10 tracks per week (Monday-Sunday)
-- **Community Rankings**: Transparent ranking algorithm based on frequency, recency, and diversity
-- **African Focus**: Dedicated to promoting music from across the African continent and diaspora
-- **Anti-Gaming**: Fraud detection and prevention measures
-- **Modern UI**: Built with Next.js 14, TypeScript, Tailwind CSS, and shadcn/ui
+### 🎮 Core Game Loop
+- **Submit Your 10** — Each week, pick up to 10 tracks across genre categories (Love, Hip-Hop, Party, Late Night, Driving, Chill, etc.)
+- **XP System** — Users start with 500 XP and earn/spend it through submissions, votes, and battles
+- **Weekly Charts** — Billboard-style Top 100 powered by stream completions and community signals
+- **Leaderboard** — Ranked by XP and submission performance
+- **Rewards** — Weekly payouts based on chart position and activity (badges, points)
+
+### 🎵 Music
+- Stream tracks directly via the built-in audio player
+- Import playlists from Spotify, Apple Music, or YouTube links
+- Create and manage personal playlists
+- Like tracks to save them to your library
+- Search the JamFind catalog
+
+### 👥 Social
+- Follow other users
+- Activity feed showing what friends are doing
+- See friends' playlists and submissions
+- Creator profiles with stats and badges
+- People You May Like discovery
+
+### 🏆 Competition
+- Playlist Challenges — themed competitions (e.g. "Best Late Night Drive Playlist")
+- Battle mode — head-to-head playlist votes with XP stakes
+- Challenge entries, voting, and rankings
+- Streak system for consistent weekly submitters
+
+### 📊 Charts & Analytics
+- Weekly Top 100 tracks chart with rank delta indicators
+- Top Playlist charts
+- Global, Ghana, Nigeria, South Africa filters
+- Stream event tracking (start, heartbeat, complete)
+- Admin analytics dashboard
+
+### 👤 User Accounts
+- Email/password authentication
+- Profile with bio, avatar, country, social links
+- XP balance and history
+- Submission history across all weeks
+- Badges and creator recognition
+
+### 🔔 Live Features
+- Real-time activity ticker (Redis pub/sub)
+- Live lounge feed with "Now Playing" updates
+- Vote battle broadcasts
+
+---
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14 (App Router), React, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, Server Actions
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js (Email/Password + Google OAuth)
-- **UI Components**: shadcn/ui + Radix UI
-- **File Upload**: UploadThing
-- **Queue**: BullMQ + Redis
-- **Testing**: Vitest + Playwright
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Database | SQLite (dev) via Prisma ORM |
+| Auth | NextAuth.js (JWT + Credentials) |
+| Styling | Tailwind CSS |
+| UI Components | Radix UI |
+| State | TanStack React Query + Zustand |
+| Charts | Recharts |
+| Queue | BullMQ + Redis |
+| Storage | AWS S3 + UploadThing |
+| Deployment | Vercel |
+
+---
+
+## Pages
+
+| Route | Description |
+|---|---|
+| `/` | Landing page |
+| `/home` | Personalized dashboard for logged-in users |
+| `/submit` | Weekly track submission builder |
+| `/charts` | Billboard Top 100 weekly chart |
+| `/leaderboard` | Global XP leaderboard |
+| `/discover` | Music discovery feed |
+| `/stream` | Stream Hub — search and play music |
+| `/playlists/[id]` | Playlist detail page |
+| `/playlists/new` | Create a new playlist |
+| `/creator/[id]` | Creator profile page |
+| `/rewards` | Your rewards, badges, and points |
+| `/login` | Sign in page |
+| `/account` | Account settings |
+| `/admin` | Admin dashboard |
+
+---
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js 18+ 
-- PostgreSQL database
-- Redis (for queue processing)
+- Node.js 18+
+- npm or yarn
+- Redis (for live features and queue)
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd jamfind-app
-   ```
+```bash
+# Clone the repo
+git clone https://github.com/martin-sack/JamFind.git
+cd JamFind
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Edit `.env.local` with your configuration:
-   ```env
-   # Database
-   DATABASE_URL="postgresql://username:password@localhost:5432/jamfind_africa"
+# Set up environment variables
+cp .env.local.example .env.local
+# Edit .env.local with your values
 
-   # NextAuth
-   NEXTAUTH_SECRET="your-nextauth-secret-here"
-   NEXTAUTH_URL="http://localhost:3000"
+# Set up the database
+npx prisma migrate dev
 
-   # OAuth Providers
-   GOOGLE_CLIENT_ID="your-google-client-id"
-   GOOGLE_CLIENT_SECRET="your-google-client-secret"
+# Seed with demo data (optional)
+npm run db:seed
 
-   # Redis
-   REDIS_URL="redis://localhost:6379"
+# Start dev server
+npm run dev
+```
 
-   # Storage (UploadThing or S3)
-   UPLOADTHING_SECRET="your-uploadthing-secret"
-   UPLOADTHING_APP_ID="your-uploadthing-app-id"
-   ```
+### Environment Variables
 
-4. **Set up the database**
-   ```bash
-   npx prisma generate
-   npx prisma db push
-   npm run db:seed
-   ```
+```env
+# Database
+DATABASE_URL="file:./dev.db"
 
-5. **Run the development server**
-   ```bash
-   npm run dev
-   ```
+# Auth
+NEXTAUTH_SECRET="your-secret"
+NEXTAUTH_URL="http://localhost:3000"
 
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+# Redis (for live features)
+REDIS_URL="redis://localhost:6379"
 
-## Database Schema
+# AWS S3 (for audio uploads)
+AWS_ACCESS_KEY_ID=""
+AWS_SECRET_ACCESS_KEY=""
+AWS_REGION=""
+AWS_S3_BUCKET=""
 
-The application uses a comprehensive schema including:
-- **Users**: Authentication and profile data
-- **Artists**: Artist information with verification status
-- **Tracks**: Music tracks with metadata
-- **Playlists**: Weekly user submissions
-- **PlaylistItems**: Individual tracks in playlists
-- **SubmissionStats**: Aggregated data for ranking
-- **RankingSnapshots**: Weekly ranking results
-- **FraudSignals**: Anti-gaming detection
-- **AuditLogs**: System activity tracking
+# Spotify (for playlist import)
+SPOTIFY_CLIENT_ID=""
+SPOTIFY_CLIENT_SECRET=""
+```
 
-## Ranking Algorithm
+### Scripts
 
-Weekly rankings are computed using:
-- **Frequency Score**: `log(1 + submitterCount)`
-- **Recency Weight**: Decay factor for recent submissions
-- **Diversity Weight**: Based on unique countries
-- **Anti-Gaming**: Penalties for suspicious activity
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run db:migrate   # Run database migrations
+npm run db:seed      # Seed database with demo data
+npm run db:studio    # Open Prisma Studio
+```
 
-## Core Flows
+---
 
-1. **Onboarding**: Email/password or Google OAuth with genre/mood preferences
-2. **Weekly Submission**: Create 10-track playlist with validation
-3. **Search & Discovery**: Global search with filters
-4. **Billboard**: Weekly rankings with transparent scoring
-5. **Track Upload**: Artist upload with moderation
-6. **Admin Dashboard**: Moderation and system management
-
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run test` - Run unit tests
-- `npm run e2e` - Run E2E tests
-- `npm run db:migrate` - Run database migrations
-- `npm run db:seed` - Seed database with sample data
-- `npm run db:studio` - Open Prisma Studio
-
-### Project Structure
+## Project Structure
 
 ```
 jamfind-app/
-├── app/                    # Next.js App Router
-│   ├── auth/              # Authentication pages
-│   ├── submit/            # Playlist submission
-│   ├── api/               # API routes
-│   └── layout.tsx         # Root layout
-├── components/            # React components
-│   └── ui/               # shadcn/ui components
-├── lib/                  # Utility functions
-│   ├── auth.ts          # NextAuth configuration
-│   ├── db.ts            # Database client
-│   └── utils.ts         # Utility functions
-├── prisma/              # Database schema
-│   ├── schema.prisma    # Prisma schema
-│   └── seed.ts          # Database seed data
-└── public/              # Static assets
+├── app/                    # Next.js App Router pages
+│   ├── (app)/              # Authenticated app pages
+│   │   ├── charts/         # Weekly charts
+│   │   ├── leaderboard/    # XP leaderboard
+│   │   ├── rewards/        # User rewards
+│   │   └── submit/         # Track submission
+│   ├── api/                # API routes
+│   ├── home/               # Personalized home
+│   ├── stream/             # Stream hub
+│   └── ...
+├── components/             # Shared components
+│   ├── Charts/             # Chart row components
+│   ├── layout/             # Header, nav, banners
+│   ├── lounge/             # Live lounge widgets
+│   ├── player/             # Audio player
+│   └── ui/                 # Base UI primitives
+├── lib/                    # Utilities and services
+│   ├── auth.ts             # NextAuth config
+│   ├── db.ts               # Prisma client
+│   ├── charts.ts           # Chart ranking logic
+│   ├── xp.ts               # XP calculation
+│   ├── rewards.ts          # Reward distribution
+│   └── ...
+├── prisma/
+│   ├── schema.prisma       # Database schema
+│   └── migrations/         # Migration history
+└── hooks/                  # Custom React hooks
 ```
 
-## Deployment
+---
 
-### Vercel (Recommended)
+## Status
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy automatically
+> ⚠️ **Platform Under Development** — Updates and changes will be applied soon.
 
-### Other Platforms
+Currently deployed in demo mode. Full authentication and user features will be enabled once the production database is configured.
 
-The app can be deployed to any platform that supports Next.js:
-- Netlify
-- Railway
-- DigitalOcean App Platform
-- AWS Amplify
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+---
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Support
-
-For support and questions:
-- Create an issue on GitHub
-- Join our community Discord
-- Email: support@jamfind.africa
+Private — All rights reserved.
