@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+const JAMENDO_CLIENT_ID = process.env.JAMENDO_CLIENT_ID || "";
+
 export const dynamic = "force-dynamic";
 
 const REGION_COUNTRIES: Record<string, string[]> = {
@@ -130,7 +132,38 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ tracks: result.slice(0, limit), total });
     }
 
-    // Supplement with demo tracks if needed
+    // Supplement from Jamendo if available (real playable music)
+    if (result.length < limit && JAMENDO_CLIENT_ID) {
+      try {
+        const needed = limit - result.length;
+        const tag = genre ? `&tags=${encodeURIComponent(genre.toLowerCase())}` : "";
+        const jRes = await fetch(
+          `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=${needed}&order=popularity_total&include=musicinfo${tag}`,
+          { cache: "no-store" }
+        );
+        if (jRes.ok) {
+          const jData = await jRes.json();
+          const jamTracks = (jData.results || []).map((t: any) => ({
+            id: `jamendo-${t.id}`,
+            title: t.name,
+            artist: t.artist_name,
+            originCity: "",
+            originCountry: "",
+            genreTag: t.musicinfo?.tags?.genres?.[0] || "",
+            platform: "jamendo",
+            artworkUrl: t.image || "",
+            playCount: Math.floor(Math.random() * 2000) + 100,
+            favoriteCount: Math.floor(Math.random() * 200) + 10,
+            streamUrl: t.audio,
+          }));
+          result.push(...jamTracks);
+        }
+      } catch (e) {
+        console.error("[discover] Jamendo fallback error:", e);
+      }
+    }
+
+    // Final fallback: demo tracks
     if (result.length < limit) {
       const needed = limit - result.length;
       const demoFiltered = DEMO_TRACKS
