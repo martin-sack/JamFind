@@ -1,8 +1,9 @@
 'use client'
 
-import { Play, Plus, Heart, Star } from 'lucide-react'
+import { Play, Plus, Heart, Star, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { playTrack } from '@/lib/playTrack'
 
 interface TrackCardProps {
   track: {
@@ -23,11 +24,22 @@ interface TrackCardProps {
 export function TrackCard({ track, rank, showRank = false, showXP = false, xpValue = 0 }: TrackCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handlePlayPreview = () => {
-    if (track.previewUrl) {
-      setIsPlaying(!isPlaying)
-      // Audio playback logic would go here
+  const handlePlayPreview = async () => {
+    setIsLoading(true)
+    try {
+      await playTrack({
+        id: track.id,
+        title: track.title,
+        artist: track.artist,
+        artworkUrl: track.artworkUrl || track.albumArt,
+      })
+      setIsPlaying(true)
+    } catch {
+      console.error('Stream unavailable')
+    } finally {
+      setIsLoading(false)
     }
   }
 

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, X, Music, CheckCircle, ExternalLink, Clock, AlertTriangle } from 'lucide-react';
+import PlaylistImporter from '@/components/submit/PlaylistImporter';
 
 interface Track {
   id: string;
@@ -507,7 +508,33 @@ export default function SubmitClient({ initialPlaylist }: SubmitClientProps) {
         </CardContent>
       </Card>
 
-      {/* Right Column - Search */}
+      {/* Right Column - Import & Search */}
+      <div className="space-y-4">
+        {/* Playlist Importer */}
+        <PlaylistImporter
+          currentTrackCount={playlist.items.length}
+          maxTracks={10}
+          onImport={(imported) => {
+            imported.forEach((t) => {
+              handleAddTrack({
+                id: `imported-${Date.now()}-${Math.random()}`,
+                title: t.title,
+                artist: { id: '', name: t.artist, country: '' },
+                artworkUrl: t.artworkUrl || undefined,
+                platform: t.platform,
+              } as any);
+            });
+          }}
+        />
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 text-white/30 text-xs">
+          <div className="flex-1 border-t border-white/10" />
+          <span>or add tracks manually</span>
+          <div className="flex-1 border-t border-white/10" />
+        </div>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Search & Add Tracks</CardTitle>
