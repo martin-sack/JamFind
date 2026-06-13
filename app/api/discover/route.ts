@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
       artworkUrl: t.artworkUrl || "",
       playCount: playMap.get(t.id) || 0,
       favoriteCount: likeMap.get(t.id) || 0,
-      streamUrl: t.streamUrl,
+      streamUrl: t.streamUrl || t.previewUrl,
     }));
 
     // If we got enough from DB, return

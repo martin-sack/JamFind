@@ -8,6 +8,7 @@ export interface PlayableTrack {
   platform?: string;
   externalId?: string | null;
   streamUrl?: string | null;
+  previewUrl?: string | null;
   streamHref?: string;
 }
 
@@ -16,9 +17,10 @@ export interface PlayableTrack {
  * Returns the resolved streamHref.
  */
 export async function resolveStreamUrl(track: PlayableTrack): Promise<string> {
-  // Already has a direct stream URL (e.g. Jamendo audio URLs)
+  // Already has a direct stream URL
   if (track.streamHref) return track.streamHref;
   if (track.streamUrl && track.streamUrl.startsWith("http")) return track.streamUrl;
+  if (track.previewUrl && track.previewUrl.startsWith("http")) return track.previewUrl;
 
   const platform = track.platform || "jamfind";
   const extId = track.externalId || track.id;

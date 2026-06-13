@@ -22,6 +22,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ streamUrl: track.streamUrl });
     }
 
+    // If track has a Spotify preview URL (30s clip), use it
+    if (track.previewUrl) {
+      return NextResponse.json({ streamUrl: track.previewUrl });
+    }
+
     // If track has an external ID on a platform, resolve via platform proxy
     if (track.externalId && track.platform) {
       if (track.platform === "audius") {
