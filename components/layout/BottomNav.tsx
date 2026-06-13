@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Compass, Plus, BarChart3, User } from 'lucide-react'
+import { Home, Compass, Ear, BarChart3, User, Plus } from 'lucide-react'
 
 const tabs = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/discover', label: 'Discover', icon: Compass },
-  { href: '/submit', label: 'Submit', icon: Plus, isCenter: true },
+  { href: '/find', label: 'Find', icon: Ear },
   { href: '/charts', label: 'Charts', icon: BarChart3 },
   { href: '/account', label: 'Profile', icon: User },
 ]
@@ -20,6 +20,21 @@ export default function BottomNav() {
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
+      {/* Floating Submit FAB */}
+      <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-10">
+        <Link
+          href="/submit"
+          className="flex items-center justify-center rounded-full shadow-lg"
+          style={{
+            width: '52px',
+            height: '52px',
+            backgroundColor: '#F4A500',
+          }}
+        >
+          <Plus className="h-6 w-6 text-black" strokeWidth={2.5} />
+        </Link>
+      </div>
+
       <div
         className="flex items-end justify-around"
         style={{
@@ -33,34 +48,6 @@ export default function BottomNav() {
             ? pathname === '/'
             : pathname.startsWith(tab.href)
           const Icon = tab.icon
-
-          if (tab.isCenter) {
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className="flex flex-col items-center justify-center"
-                style={{ minWidth: '48px', minHeight: '48px' }}
-              >
-                <div
-                  className="flex items-center justify-center rounded-full -mt-5 shadow-lg"
-                  style={{
-                    width: '52px',
-                    height: '52px',
-                    backgroundColor: '#F4A500',
-                  }}
-                >
-                  <Icon className="h-6 w-6 text-black" strokeWidth={2.5} />
-                </div>
-                <span
-                  className="text-[10px] mt-0.5"
-                  style={{ color: isActive ? '#F4A500' : '#6B7280' }}
-                >
-                  {tab.label}
-                </span>
-              </Link>
-            )
-          }
 
           return (
             <Link
