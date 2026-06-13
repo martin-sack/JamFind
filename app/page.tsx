@@ -30,6 +30,7 @@ export default function HomePage() {
   const [trending, setTrending] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [playError, setPlayError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/discover?sort=trending&page=1")
@@ -41,9 +42,13 @@ export default function HomePage() {
 
   const handlePlay = async (t: Track) => {
     setPlayingId(t.id);
+    setPlayError(null);
     try {
       await playTrack({ id: t.id, title: t.title, artist: t.artist, artworkUrl: t.artworkUrl, platform: t.platform, streamUrl: t.streamUrl });
-    } catch {}
+    } catch (e: any) {
+      setPlayError(e?.message || "Stream unavailable");
+      setTimeout(() => setPlayError(null), 3000);
+    }
     finally { setPlayingId(null); }
   };
 
@@ -135,6 +140,13 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Play error toast */}
+      {playError && (
+        <div className="fixed top-20 left-4 right-4 z-50 bg-red-500/90 text-white text-sm px-4 py-3 rounded-xl text-center backdrop-blur">
+          {playError}
+        </div>
+      )}
 
       {/* How JamFind Works */}
       <section className="px-6 pb-8">

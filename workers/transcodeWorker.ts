@@ -1,7 +1,6 @@
 import { Worker } from "bullmq";
 import { redis } from "../lib/redis";
-import { s3 } from "../lib/s3";
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
@@ -19,6 +18,7 @@ function streamToFile(stream: NodeJS.ReadableStream, filePath: string) {
 
 export const worker = new Worker("transcode", async job => {
   const { trackId, sourceKey } = job.data as { trackId: string; sourceKey: string };
+  const s3 = new S3Client({ region: process.env.AWS_REGION! });
   const bucket = process.env.AWS_BUCKET_NAME!;
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), `jamfind-${trackId}-`));
   const inputFile = path.join(tmpDir, "input");

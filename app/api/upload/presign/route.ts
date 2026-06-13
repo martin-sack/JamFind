@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const dynamic = 'force-dynamic';
-
-const s3 = new S3Client({ region: process.env.AWS_REGION });
-
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  if (!process.env.AWS_REGION || !process.env.AWS_BUCKET_NAME) {
+    return NextResponse.json({ error: "S3 not configured" }, { status: 503 });
+  }
+
   const { trackId, filename, contentType } = await req.json();
   if (!trackId || !filename || !contentType) {
     return NextResponse.json({ error: "Missing params" }, { status: 400 });
   }
+
+  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+  const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
+
+  const s3 = new S3Client({ region: process.env.AWS_REGION });
   const Key = `uploads/${trackId}/${filename}`;
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME!,

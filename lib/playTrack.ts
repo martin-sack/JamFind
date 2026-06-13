@@ -46,15 +46,17 @@ export async function resolveStreamUrl(track: PlayableTrack): Promise<string> {
       break;
     }
     default: {
-      // JamFind / S3 uploaded — use presigned HLS URL
+      // Use the unified stream route — it checks DB, platform APIs, then S3
       const r = await fetch(`/api/stream/${track.id}`);
-      const j = await r.json();
-      url = j.streamUrl || "";
+      if (r.ok) {
+        const j = await r.json();
+        url = j.streamUrl || "";
+      }
       break;
     }
   }
 
-  if (!url) throw new Error("Stream unavailable");
+  if (!url) throw new Error("Stream unavailable — this track has no audio source yet");
   return url;
 }
 
