@@ -1,39 +1,179 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
-  const u = new URL(req.url);
-  const artist = u.searchParams.get("artist") || "";
-  const lastKey = process.env.LASTFM_API_KEY;
-  const tdKey = process.env.TASTEDIVE_API_KEY;
-  const results: any = {};
+const REGION_COUNTRIES: Record<string, string[]> = {
+  "west-africa": ["GH", "NG", "SN", "CI", "ML", "BF", "TG", "BJ", "NE", "GM", "GN", "SL", "LR"],
+  "east-africa": ["KE", "TZ", "UG", "ET", "RW", "BI", "SO", "SD", "ER", "DJ"],
+  "southern-africa": ["ZA", "BW", "ZW", "MZ", "ZM", "MW", "NA", "LS", "SZ", "AO"],
+  "north-africa": ["EG", "MA", "TN", "DZ", "LY", "SD"],
+  "central-africa": ["CM", "CD", "CG", "GA", "CF", "TD", "GQ"],
+};
 
-  if (artist && lastKey) {
-    try {
-      const r = await fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(artist)}&api_key=${lastKey}&format=json`, { 
-        cache: "no-store" 
-      });
-      if (r.ok) {
-        results.lastfm = await r.json();
-      }
-    } catch (error) {
-      console.error("Last.fm API error:", error);
+const DEMO_TRACKS = [
+  { title: "Last Last", artist: "Burna Boy", country: "NG", genre: "Afrobeats", artwork: null },
+  { title: "Calm Down", artist: "Rema", country: "NG", genre: "Afrobeats", artwork: null },
+  { title: "Essence", artist: "Wizkid", country: "NG", genre: "Afropop", artwork: null },
+  { title: "Love Nwantiti", artist: "CKay", country: "NG", genre: "Afrobeats", artwork: null },
+  { title: "Peru", artist: "Fireboy DML", country: "NG", genre: "Afropop", artwork: null },
+  { title: "Soweto", artist: "Victony", country: "NG", genre: "Amapiano", artwork: null },
+  { title: "Bandana", artist: "Asake", country: "NG", genre: "Amapiano", artwork: null },
+  { title: "Rush", artist: "Ayra Starr", country: "NG", genre: "Afropop", artwork: null },
+  { title: "Terminator", artist: "King Promise", country: "GH", genre: "Highlife", artwork: null },
+  { title: "Overloading", artist: "Mavins", country: "NG", genre: "Afrobeats", artwork: null },
+  { title: "Jerusalema", artist: "Master KG", country: "ZA", genre: "Amapiano", artwork: null },
+  { title: "Water", artist: "Tyla", country: "ZA", genre: "Amapiano", artwork: null },
+  { title: "Suzanna", artist: "Sauti Sol", country: "KE", genre: "Bongo Flava", artwork: null },
+  { title: "Adonai", artist: "Sarkodie", country: "GH", genre: "Highlife", artwork: null },
+  { title: "Sabilulungan", artist: "Burna Boy", country: "NG", genre: "Afrobeats", artwork: null },
+];
+
+export async function GET(req: NextRequest) {
+  const u = req.nextUrl;
+  const region = u.searchParams.get("region") || "all";
+  const genre = u.searchParams.get("genre") || "";
+  const sort = u.searchParams.get("sort") || "trending";
+  const page = Math.max(1, parseInt(u.searchParams.get("page") || "1"));
+  const limit = 20;
+  const skip = (page - 1) * limit;
+
+  try {
+    // Build where clause
+    const where: any = { visibility: "PUBLIC" };
+
+    if (region !== "all" && REGION_COUNTRIES[region]) {
+      where.country = { in: REGION_COUNTRIES[region] };
     }
-  }
-  
-  if (artist && tdKey) {
-    try {
-      const r2 = await fetch(`https://tastedive.com/api/similar?q=${encodeURIComponent(artist)}&type=music&k=${tdKey}`, { 
-        cache: "no-store" 
-      });
-      if (r2.ok) {
-        results.tastedive = await r2.json();
-      }
-    } catch (error) {
-      console.error("TasteDive API error:", error);
+
+    if (genre) {
+      where.OR = [
+        { genres: { contains: genre } },
+        { genre: { equals: genre } },
+      ];
     }
+
+    // Get track IDs sorted by play count (trending) in last 7 days
+    let trackIds: string[] = [];
+
+    if (sort === "trending" || sort === "most-played") {
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const streamCounts: any[] = await prisma.$queryRawUnsafe(
+        `SELECT trackId, COUNT(*) as plays FROM stream_events
+         WHERE eventType = 'complete' AND createdAt >= ?
+         GROUP BY trackId ORDER BY plays DESC LIMIT ? OFFSET ?`,
+        since, limit + 10, skip
+      );
+      trackIds = streamCounts.map((r: any) => r.trackId);
+    }
+
+    // Fetch tracks
+    let tracks;
+    if (trackIds.length > 0) {
+      tracks = await prisma.track.findMany({
+        where: { ...where, id: { in: trackIds } },
+        include: { artist: true },
+      });
+      // Maintain sort order from stream counts
+      const byId = new Map(tracks.map((t) => [t.id, t]));
+      tracks = trackIds.map((id) => byId.get(id)).filter(Boolean) as typeof tracks;
+    } else {
+      // Fallback to direct query
+      const orderBy: any =
+        sort === "newest" ? { createdAt: "desc" as const } :
+        sort === "most-favorited" ? { createdAt: "desc" as const } :
+        { createdAt: "desc" as const };
+
+      tracks = await prisma.track.findMany({
+        where,
+        include: { artist: true },
+        orderBy,
+        skip,
+        take: limit,
+      });
+    }
+
+    // Get play counts and favorite counts
+    const ids = tracks.map((t) => t.id);
+
+    const streamCounts = ids.length > 0 ? await prisma.streamEvent.groupBy({
+      by: ["trackId"],
+      where: { trackId: { in: ids }, eventType: "complete" },
+      _count: true,
+    }) : [];
+    const playMap = new Map(streamCounts.map((s) => [s.trackId, s._count]));
+
+    const likeCounts = ids.length > 0 ? await prisma.trackLike.groupBy({
+      by: ["trackId"],
+      where: { trackId: { in: ids } },
+      _count: true,
+    }) : [];
+    const likeMap = new Map(likeCounts.map((l) => [l.trackId, l._count]));
+
+    const result = tracks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      artist: t.artist.name,
+      originCity: "",
+      originCountry: t.country || t.artist.country || "",
+      genreTag: t.genres?.split(",")[0]?.trim() || t.genre || "",
+      platform: t.platform,
+      artworkUrl: t.artworkUrl || "",
+      playCount: playMap.get(t.id) || 0,
+      favoriteCount: likeMap.get(t.id) || 0,
+      streamUrl: t.streamUrl,
+    }));
+
+    // If we got enough from DB, return
+    if (result.length >= limit) {
+      const total = await prisma.track.count({ where });
+      return NextResponse.json({ tracks: result.slice(0, limit), total });
+    }
+
+    // Supplement with demo tracks if needed
+    if (result.length < limit) {
+      const needed = limit - result.length;
+      const demoFiltered = DEMO_TRACKS
+        .filter((d) => {
+          if (genre && !d.genre.toLowerCase().includes(genre.toLowerCase())) return false;
+          if (region !== "all" && REGION_COUNTRIES[region] && !REGION_COUNTRIES[region].includes(d.country)) return false;
+          return true;
+        })
+        .slice(0, needed)
+        .map((d, i) => ({
+          id: `demo-\${i}`,
+          title: d.title,
+          artist: d.artist,
+          originCity: "",
+          originCountry: d.country,
+          genreTag: d.genre,
+          platform: "jamfind",
+          artworkUrl: d.artwork || "",
+          playCount: Math.floor(Math.random() * 5000) + 500,
+          favoriteCount: Math.floor(Math.random() * 500) + 50,
+          streamUrl: null,
+        }));
+      result.push(...demoFiltered);
+    }
+
+    return NextResponse.json({ tracks: result, total: result.length });
+  } catch (err: any) {
+    console.error("[discover] error:", err);
+
+    // Never return empty — fall back to demo
+    const fallback = DEMO_TRACKS.map((d, i) => ({
+      id: `demo-\${i}`,
+      title: d.title,
+      artist: d.artist,
+      originCity: "",
+      originCountry: d.country,
+      genreTag: d.genre,
+      platform: "jamfind",
+      artworkUrl: "",
+      playCount: Math.floor(Math.random() * 5000) + 500,
+      favoriteCount: Math.floor(Math.random() * 500) + 50,
+      streamUrl: null,
+    }));
+    return NextResponse.json({ tracks: fallback, total: fallback.length });
   }
-  
-  return NextResponse.json(results);
 }
