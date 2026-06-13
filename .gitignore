@@ -42,3 +42,7 @@ __trash__/
 # IDE
 .vscode/
 .idea/
+
+# Capacitor native projects (generated locally)
+ios/
+android/

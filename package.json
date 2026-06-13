@@ -13,12 +13,22 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "worker": "tsx scripts/start-worker.ts"
+    "worker": "tsx scripts/start-worker.ts",
+    "cap:init": "cap init JamFind com.jamfind.app --web-dir out",
+    "cap:dev": "echo 'Run npm run dev first, then open Xcode/Android Studio' && cap open ios",
+    "cap:ios": "cap sync ios && cap open ios",
+    "cap:android": "cap sync android && cap open android",
+    "cap:sync": "cap sync"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.0",
     "@aws-sdk/client-s3": "^3.910.0",
     "@aws-sdk/s3-request-presigner": "^3.910.0",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/haptics": "^6.0.3",
+    "@capacitor/share": "^6.0.4",
+    "@capacitor/splash-screen": "^6.0.4",
+    "@capacitor/status-bar": "^6.0.3",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -66,6 +76,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.2.1",
     "@playwright/test": "^1.40.0",
     "@types/bcrypt": "^6.0.0",
     "@types/fluent-ffmpeg": "^2.1.27",
