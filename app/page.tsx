@@ -7,6 +7,15 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { playTrack } from "@/lib/playTrack";
 
+interface FeaturedPlaylist {
+  id: string;
+  title: string;
+  description: string;
+  trackCount: number;
+  coverArt: string | null;
+  tracks: { id: string; title: string; artist: string; artworkUrl: string | null }[];
+}
+
 interface Track {
   id: string;
   title: string;
@@ -28,16 +37,20 @@ const FLAGS: Record<string, string> = {
 export default function HomePage() {
   const { data: session } = useSession();
   const [trending, setTrending] = useState<Track[]>([]);
+  const [playlists, setPlaylists] = useState<FeaturedPlaylist[]>([]);
   const [loading, setLoading] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [playError, setPlayError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/discover?sort=trending&page=1")
-      .then((r) => r.json())
-      .then((d) => setTrending(d.tracks?.slice(0, 6) || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch("/api/discover?sort=trending&page=1").then((r) => r.json()).catch(() => ({ tracks: [] })),
+      fetch("/api/playlists/featured").then((r) => r.json()).catch(() => ({ playlists: [] })),
+    ]).then(([discoverData, playlistData]) => {
+      setTrending(discoverData.tracks?.slice(0, 6) || []);
+      setPlaylists(playlistData.playlists || []);
+      setLoading(false);
+    });
   }, []);
 
   const handlePlay = async (t: Track) => {
@@ -140,6 +153,40 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Editorial Playlists */}
+      {playlists.length > 0 && (
+        <section className="px-6 pb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-white font-semibold text-base">Curated Playlists</h2>
+          </div>
+          <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-2">
+            {playlists.map((pl) => (
+              <Link
+                key={pl.id}
+                href={`/playlists/${pl.id}`}
+                className="shrink-0 w-40 group"
+              >
+                <div className="w-40 h-40 rounded-xl overflow-hidden mb-2 bg-white/[0.06] relative">
+                  {pl.coverArt ? (
+                    <Image src={pl.coverArt} alt={pl.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Music2 className="h-8 w-8 text-white/20" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <p className="text-white text-xs font-medium truncate">{pl.trackCount} tracks</p>
+                  </div>
+                </div>
+                <p className="text-white text-sm font-medium truncate">{pl.title}</p>
+                <p className="text-white/40 text-xs truncate">{pl.description}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Play error toast */}
       {playError && (
