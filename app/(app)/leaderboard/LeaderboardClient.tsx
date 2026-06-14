@@ -1,327 +1,98 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import { Trophy, Award, TrendingUp, Globe, MapPin } from 'lucide-react'
-import { useState } from 'react'
+import { useState } from "react";
+import { Trophy, TrendingUp, Users } from "lucide-react";
 
-interface LeaderboardPlayer {
-  id: string
-  name: string
-  avatar: string
-  points: number
-  level: number
-  region: string
-  rank: number
-  change: 'up' | 'down' | 'same'
-  changeAmount?: number
-}
+const REGIONS = ["Global", "Ghana", "Nigeria", "South Africa", "Kenya"];
+
+const MOCK_CURATORS = [
+  { rank: 1, name: "DJ Kuda", handle: "@djkuda", country: "GH", picks: 48, influence: 2840, streak: 12 },
+  { rank: 2, name: "Lagos Ears", handle: "@lagosears", country: "NG", picks: 52, influence: 2650, streak: 8 },
+  { rank: 3, name: "Amapiano Queen", handle: "@amaqween", country: "ZA", picks: 41, influence: 2200, streak: 15 },
+  { rank: 4, name: "BeachBum", handle: "@beachbum", country: "GH", picks: 39, influence: 1900, streak: 6 },
+  { rank: 5, name: "NaijaVibes", handle: "@naijavibes", country: "NG", picks: 45, influence: 1750, streak: 10 },
+  { rank: 6, name: "Kampala Sounds", handle: "@kampalasounds", country: "UG", picks: 33, influence: 1580, streak: 4 },
+  { rank: 7, name: "TasteKE", handle: "@tasteke", country: "KE", picks: 37, influence: 1420, streak: 7 },
+  { rank: 8, name: "Accra After Dark", handle: "@accraafterdark", country: "GH", picks: 29, influence: 1200, streak: 3 },
+  { rank: 9, name: "SowetoBass", handle: "@sowetobass", country: "ZA", picks: 31, influence: 1100, streak: 5 },
+  { rank: 10, name: "WestSide", handle: "@westside", country: "NG", picks: 28, influence: 980, streak: 2 },
+];
+
+const FLAGS: Record<string, string> = {
+  NG: "\u{1F1F3}\u{1F1EC}", GH: "\u{1F1EC}\u{1F1ED}", ZA: "\u{1F1FF}\u{1F1E6}",
+  KE: "\u{1F1F0}\u{1F1EA}", UG: "\u{1F1FA}\u{1F1EC}",
+};
 
 export default function LeaderboardClient() {
-  const [selectedRegion, setSelectedRegion] = useState('global')
-  
-  const regions = [
-    { id: 'global', name: 'Global', icon: Globe },
-    { id: 'ghana', name: 'Ghana', icon: MapPin },
-    { id: 'nigeria', name: 'Nigeria', icon: MapPin },
-    { id: 'south-africa', name: 'South Africa', icon: MapPin },
-    { id: 'kenya', name: 'Kenya', icon: MapPin },
-  ]
-
-  const leaderboardData: LeaderboardPlayer[] = [
-    {
-      id: '1',
-      name: 'MusicMaster42',
-      avatar: '🎵',
-      points: 1250,
-      level: 12,
-      region: 'global',
-      rank: 1,
-      change: 'up',
-      changeAmount: 2
-    },
-    {
-      id: '2',
-      name: 'BeatHunter',
-      avatar: '🥁',
-      points: 980,
-      level: 10,
-      region: 'nigeria',
-      rank: 2,
-      change: 'same'
-    },
-    {
-      id: '3',
-      name: 'RhythmRider',
-      avatar: '🎸',
-      points: 870,
-      level: 9,
-      region: 'ghana',
-      rank: 3,
-      change: 'down',
-      changeAmount: 1
-    },
-    {
-      id: '4',
-      name: 'MelodyMaker',
-      avatar: '🎹',
-      points: 760,
-      level: 8,
-      region: 'south-africa',
-      rank: 4,
-      change: 'up',
-      changeAmount: 3
-    },
-    {
-      id: '5',
-      name: 'SoundSeeker',
-      avatar: '🎧',
-      points: 650,
-      level: 7,
-      region: 'kenya',
-      rank: 5,
-      change: 'up',
-      changeAmount: 1
-    },
-    {
-      id: '6',
-      name: 'HarmonyHero',
-      avatar: '🎤',
-      points: 540,
-      level: 6,
-      region: 'global',
-      rank: 6,
-      change: 'down',
-      changeAmount: 2
-    },
-    {
-      id: '7',
-      name: 'BassBoss',
-      avatar: '🎸',
-      points: 430,
-      level: 5,
-      region: 'nigeria',
-      rank: 7,
-      change: 'same'
-    },
-    {
-      id: '8',
-      name: 'TempoTamer',
-      avatar: '🥁',
-      points: 320,
-      level: 4,
-      region: 'ghana',
-      rank: 8,
-      change: 'up',
-      changeAmount: 1
-    },
-    {
-      id: '9',
-      name: 'ChordChampion',
-      avatar: '🎹',
-      points: 210,
-      level: 3,
-      region: 'south-africa',
-      rank: 9,
-      change: 'down',
-      changeAmount: 1
-    },
-    {
-      id: '10',
-      name: 'VibeVoyager',
-      avatar: '🎧',
-      points: 180,
-      level: 2,
-      region: 'kenya',
-      rank: 10,
-      change: 'up',
-      changeAmount: 2
-    }
-  ]
-
-  const filteredPlayers = selectedRegion === 'global' 
-    ? leaderboardData 
-    : leaderboardData.filter(player => player.region === selectedRegion)
-
-  const topPlayer = filteredPlayers[0]
+  const [region, setRegion] = useState("Global");
 
   return (
-    <div className="min-h-screen bg-game-dark">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-purple-900/80 via-blue-900/80 to-green-900/80 animate-gradient-shift">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(147,51,234,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(147,51,234,0.1)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"></div>
-        </div>
+    <div className="min-h-screen px-4 py-6 max-w-3xl mx-auto" style={{ backgroundColor: "#0D0D0D" }}>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">Top Curators</h1>
+        <p className="text-white/50 text-sm mt-1">People with the best taste this season</p>
+      </div>
 
-        <div className="container mx-auto px-4 py-16 relative z-10">
-          <div className="max-w-6xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-game-card border border-purple-500/30 mb-6">
-              <Trophy className="h-5 w-5 text-yellow-400" />
-              <span className="text-sm font-game-body text-neon-green">Live Leaderboard</span>
+      <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
+        {REGIONS.map((r) => (
+          <button
+            key={r}
+            onClick={() => setRegion(r)}
+            className={"shrink-0 px-4 py-2 rounded-full text-xs font-medium transition-colors " +
+              (region === r ? "text-black" : "text-white/60 bg-white/[0.06]")}
+            style={region === r ? { backgroundColor: "#F4A500" } : {}}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 mb-8">
+        {MOCK_CURATORS.slice(0, 3).map((c, i) => (
+          <div key={c.rank} className={"rounded-2xl p-4 text-center border " + (i === 0 ? "border-[#F4A500]/30 bg-[#F4A500]/[0.06]" : "border-white/5 bg-white/[0.02]")}>
+            <div className={"w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-sm font-bold " + (i === 0 ? "bg-[#F4A500] text-black" : i === 1 ? "bg-white/20 text-white" : "bg-white/10 text-white/60")}>
+              {c.rank}
             </div>
-            
-            <h1 className="text-5xl md:text-7xl font-game-title text-white mb-6">
-              Global <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">Leaderboard</span>
-            </h1>
-            
-            <p className="text-xl font-game-body text-white/80 mb-8 max-w-2xl mx-auto">
-              Compete with music lovers worldwide. Climb the ranks and earn exclusive rewards.
-            </p>
+            <p className="text-white text-sm font-medium truncate">{c.name}</p>
+            <p className="text-white/40 text-xs">{FLAGS[c.country] || ""} {c.handle}</p>
+            <p className="text-[#F4A500] text-xs font-medium mt-2">{c.influence.toLocaleString()} influence</p>
+          </div>
+        ))}
+      </div>
 
-            {/* Top Player Highlight */}
-            {topPlayer && (
-              <div className="bg-game-card rounded-2xl p-6 border border-yellow-500/30 max-w-md mx-auto mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl">{topPlayer.avatar}</div>
-                    <div>
-                      <div className="font-game-heading text-white">{topPlayer.name}</div>
-                      <div className="text-sm font-game-body text-muted-foreground">Level {topPlayer.level}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-game-title text-yellow-400">{topPlayer.points} XP</div>
-                    <div className="text-xs font-game-body text-muted-foreground">#1 Rank</div>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/30">
-                    <Award className="h-4 w-4 text-yellow-400" />
-                    <span className="text-sm font-game-body text-yellow-400">Top Discoverer of the Week</span>
-                  </div>
-                </div>
+      <div className="space-y-1">
+        {MOCK_CURATORS.map((c) => (
+          <div key={c.rank} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors">
+            <span className={"w-8 text-center text-sm font-bold tabular-nums " + (c.rank <= 3 ? "text-[#F4A500]" : "text-white/40")}>{c.rank}</span>
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/50 text-sm font-medium shrink-0">{c.name.charAt(0)}</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-medium truncate">{c.name}</p>
+              <p className="text-white/40 text-xs">{FLAGS[c.country] || ""} {c.handle}</p>
+            </div>
+            <div className="text-right shrink-0 space-y-0.5">
+              <p className="text-white/60 text-xs tabular-nums">{c.influence.toLocaleString()}</p>
+              <div className="flex items-center gap-1 justify-end">
+                <TrendingUp className="h-2.5 w-2.5 text-emerald-400" />
+                <span className="text-[10px] text-emerald-400">{c.streak}w streak</span>
               </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-6xl mx-auto">
-          {/* Region Filters */}
-          <div className="flex flex-wrap gap-2 mb-8 justify-center">
-            {regions.map((region) => {
-              const Icon = region.icon
-              return (
-                <Button
-                  key={region.id}
-                  variant={selectedRegion === region.id ? "default" : "outline"}
-                  className={`
-                    font-game-body transition-all duration-200
-                    ${selectedRegion === region.id 
-                      ? 'btn-game-primary' 
-                      : 'border-neon-purple text-white hover:bg-purple-500/10'
-                    }
-                  `}
-                  onClick={() => setSelectedRegion(region.id)}
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {region.name}
-                </Button>
-              )
-            })}
-          </div>
-
-          {/* Leaderboard Table */}
-          <div className="bg-game-card rounded-2xl p-6 border border-purple-500/30">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-purple-500/20">
-                    <th className="text-left py-4 px-4 font-game-heading text-muted-foreground">Rank</th>
-                    <th className="text-left py-4 px-4 font-game-heading text-muted-foreground">Player</th>
-                    <th className="text-left py-4 px-4 font-game-heading text-muted-foreground">Level</th>
-                    <th className="text-right py-4 px-4 font-game-heading text-muted-foreground">Points</th>
-                    <th className="text-center py-4 px-4 font-game-heading text-muted-foreground">Change</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPlayers.map((player) => (
-                    <tr 
-                      key={player.id}
-                      className="border-b border-purple-500/10 hover:bg-purple-500/5 transition-colors duration-200"
-                    >
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`
-                            w-8 h-8 rounded-full flex items-center justify-center text-sm font-game-heading
-                            ${player.rank === 1 ? 'bg-yellow-500 text-black' : 
-                              player.rank === 2 ? 'bg-gray-400 text-black' : 
-                              player.rank === 3 ? 'bg-orange-500 text-black' : 
-                              'bg-purple-500/20 text-white'}
-                          `}>
-                            {player.rank}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl">{player.avatar}</div>
-                          <div>
-                            <div className="font-game-body text-white">{player.name}</div>
-                            <div className="text-xs font-game-body text-muted-foreground capitalize">
-                              {player.region.replace('-', ' ')}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-400 rounded-full neon-pulse"></div>
-                          <span className="font-game-body text-white">Level {player.level}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <div className="font-game-heading text-neon-green">{player.points} XP</div>
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        {player.change === 'up' && (
-                          <div className="inline-flex items-center gap-1 text-green-400">
-                            <TrendingUp className="h-4 w-4" />
-                            <span className="text-sm font-game-body">+{player.changeAmount}</span>
-                          </div>
-                        )}
-                        {player.change === 'down' && (
-                          <div className="inline-flex items-center gap-1 text-red-400">
-                            <TrendingUp className="h-4 w-4 rotate-180" />
-                            <span className="text-sm font-game-body">-{player.changeAmount}</span>
-                          </div>
-                        )}
-                        {player.change === 'same' && (
-                          <div className="text-sm font-game-body text-muted-foreground">—</div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Load More */}
-            <div className="text-center mt-8">
-              <Button variant="outline" className="border-neon-purple text-white hover:bg-purple-500/10">
-                Load More Players
-              </Button>
             </div>
           </div>
+        ))}
+      </div>
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="bg-game-card rounded-2xl p-6 border border-purple-500/30 text-center">
-              <div className="text-3xl font-game-title text-neon-purple mb-2">50K+</div>
-              <div className="font-game-body text-muted-foreground">Active Players</div>
-            </div>
-            <div className="bg-game-card rounded-2xl p-6 border border-green-500/30 text-center">
-              <div className="text-3xl font-game-title text-neon-green mb-2">1.2M</div>
-              <div className="font-game-body text-muted-foreground">Total XP Earned</div>
-            </div>
-            <div className="bg-game-card rounded-2xl p-6 border border-pink-500/30 text-center">
-              <div className="text-3xl font-game-title text-neon-pink mb-2">$15K</div>
-              <div className="font-game-body text-muted-foreground">Weekly Prize Pool</div>
-            </div>
+      <div className="grid grid-cols-3 gap-3 mt-8">
+        {[
+          { icon: Users, value: "1.2k", label: "Active curators" },
+          { icon: Trophy, value: "48", label: "Weeks tracked" },
+          { icon: TrendingUp, value: "15.2k", label: "Picks submitted" },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl bg-white/[0.03] p-4 text-center">
+            <s.icon className="h-5 w-5 text-white/30 mx-auto mb-1" />
+            <p className="text-white font-medium text-sm">{s.value}</p>
+            <p className="text-white/30 text-[10px]">{s.label}</p>
           </div>
-        </div>
-      </main>
+        ))}
+      </div>
     </div>
-  )
+  );
 }

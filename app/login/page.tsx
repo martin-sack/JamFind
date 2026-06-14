@@ -28,7 +28,7 @@ export default function LoginPage() {
           <input className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10"
                  value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Password" />
           <button disabled={loading}
-                  className="w-full px-4 py-2 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white">
+                  className="w-full px-4 py-3 rounded-xl font-medium text-black" style={{ backgroundColor: "#F4A500" }}>
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
